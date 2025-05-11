@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Shadered Bamboo + Leaves</title>
+  <style>
+    body { margin: 0; overflow: hidden }
+    canvas { display: block }
+  </style>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+////////////////////////////////////////////////////////////////////////
+// 1) Scene + Camera + Renderer + Controls + Helpers
+////////////////////////////////////////////////////////////////////////
+const scene    = new THREE.Scene();
+scene.background = new THREE.Color(0x222222);
+
+const camera   = new THREE.PerspectiveCamera(60, innerWidth/innerHeight, 0.1, 100);
+camera.position.set(0, 5, 15);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(innerWidth, innerHeight);
+document.body.appendChild(renderer.domElement);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+scene.add(new THREE.GridHelper(20, 20));
+scene.add(new THREE.AxesHelper(5));
+
+
+////////////////////////////////////////////////////////////////////////
+// 2) Bamboo Stalks: InstancedBufferGeometry + ShaderMaterial
+////////////////////////////////////////////////////////////////////////
+const N = 200;
+
+// Base cylinder (1 unit tall, base at y=0), subdivided for nodes
+const baseGeo = new THREE.CylinderGeometry(1, 1, 1, 16, 8, false);
+baseGeo.translate(0, 0.5, 0);
+
+const instG = new THREE.InstancedBufferGeometry().copy(baseGeo);
+instG.instanceCount = N;
+
+// Per-instance data
+const offsets       = new Float32Array(N * 3);
+const heights       = new Float32Array(N);
+const radii         = new Float32Array(N);
+
+// Scatter stalks & store their parameters
+for (let i = 0; i < N; i++) {
+  const a = Math.random() * Math.PI * 2;
+  const d = Math.random() * 6;
+  offsets[3*i  ] = Math.cos(a) * d;
+  offsets[3*i+1] = 0;
+  offsets[3*i+2] = Math.sin(a) * d;
+
+  heights[i]     = 2 + Math.random() * 6;      // final height [2–8]
+  radii[i]       = 0.05 + Math.random() * 0.1; // base radius
+}
+
+instG.setAttribute('instanceOffset',
+  new THREE.InstancedBufferAttribute(offsets, 3)
+);
+instG.setAttribute('instanceHeight',
+  new THREE.InstancedBufferAttribute(heights, 1)
+);
+instG.setAttribute('instanceRadius',
+  new THREE.InstancedBufferAttribute(radii, 1)
+);
+
+// ShaderMaterial that bulges nodes & stripes segments
+const bambooMat = new THREE.ShaderMaterial({
+  vertexShader: `
+    precision highp float;
+    precision highp int;
+    #define PI 3.141592653589793
+
+    attribute vec3 instanceOffset;
+    attribute float instanceHeight;
+    attribute float instanceRadius;
+//    attribute vec2 uv;
+
+    varying float vNode;
+
+    void main() {
+      // normalized height [0,1]
+      float yN = uv.y;
+
+      // how many nodes?
+      float segs = 8.0;
+
+      // bulge wave at each node
+      float wave = sin(yN * segs * PI) * 0.1;
+      float r2 = instanceRadius * (1.0 + wave);
+
+      // build transformed vertex
+      vec3 p = vec3(
+        position.x * r2,
+        yN * instanceHeight,
+        position.z * r2
+      );
+
+      // instancing + camera projection
+      vec4 mvPos = modelViewMatrix * vec4(p + instanceOffset, 1.0);
+      gl_Position = projectionMatrix * mvPos;
+
+      // stripe color based on segment index
+      vNode = mod(floor(yN * segs), 2.0);
+    }
+  `,
+  fragmentShader: `
+    precision highp float;
+    precision highp int;
+    varying float vNode;
+    void main() {
+      // two green tones
+      vec3 c1 = vec3(0.18, 0.5, 0.18);
+      vec3 c2 = vec3(0.22, 0.6, 0.22);
+      vec3 col = mix(c1, c2, vNode);
+      gl_FragColor = vec4(col, 1.0);
+    }
+  `
+});
+
+const bambooMesh = new THREE.Mesh(instG, bambooMat);
+scene.add(bambooMesh);
+
+/*
+////////////////////////////////////////////////////////////////////////
+// 3) Leaves: simple InstancedMesh of planes, two per stalk
+////////////////////////////////////////////////////////////////////////
+const leafGeo = new THREE.PlaneGeometry(1, 1);
+leafGeo.translate(0, 1, 0);  // pivot at base of leaf
+const leafMat = new THREE.MeshBasicMaterial({
+  color: 0x2a8b2a,
+  side: THREE.DoubleSide
+});
+
+const leavesPerStalk = 2;
+const leafMesh = new THREE.InstancedMesh(leafGeo, leafMat, N * leavesPerStalk);
+scene.add(leafMesh);
+
+const dummy = new THREE.Object3D();
+let li = 0;
+for (let i = 0; i < N; i++) {
+  const x = offsets[3*i];
+  const z = offsets[3*i+2];
+  const h = heights[i];
+
+  for (let j = 0; j < leavesPerStalk; j++) {
+    // stagger around top
+    const ang = Math.random() * Math.PI * 2;
+    dummy.position.set(
+      x + Math.cos(ang)*0.2,
+      h * 0.9,
+      z + Math.sin(ang)*0.2
+    );
+    // leaf shape
+    const s = 0.3 + Math.random() * 0.2;
+    dummy.scale.set(s, s, s);
+    dummy.rotation.y = Math.random() * Math.PI * 2;
+
+    dummy.updateMatrix();
+    leafMesh.setMatrixAt(li++, dummy.matrix);
+  }
+}
+leafMesh.instanceMatrix.needsUpdate = true;
+*/
+
+////////////////////////////////////////////////////////////////////////
+// 4) Render Loop
+////////////////////////////////////////////////////////////////////////
+function animate() {
+  requestAnimationFrame(animate);
+  controls.update();
+  renderer.render(scene, camera);
+}
+animate();
+
+window.addEventListener('resize', () => {
+  camera.aspect = innerWidth/innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+</script>
+</body>
+</html>
