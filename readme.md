@@ -4,6 +4,11 @@ May 10 2025
 
 3D visualization of agent based bamboo and diverse crop model growth.
 
+See https://anselm.github.io/bamboo-sim-2/
+
+![bamboo](assets/screenshot.png?raw=true "bamboo")
+
+
 Generally:
 
 - shows visualization for farmers or other interested parties
