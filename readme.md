@@ -1,43 +1,21 @@
-# Cloudeco-sim
+# Bamboo Sim
 
 May 10 2025
 
-Continuing to explore agent / object based simulations of ecosystems:
+3D visualization of agent based bamboo and diverse crop model growth.
 
-# Ongoing
+Generally:
 
-- bamboo themselves should use a shader
+- shows visualization for farmers or other interested parties
+- can simulate multiple years of growth and harvesting at several days a second
+- 3d model of one or more hectares of bamboo and or other crops
 
-- there's a very general need for spatial query support
-	for example plotting bamboo cluster placement
-	each bamboo could be added 'for real'
-	and then query support could help avoid collisions
+- grows giant bamboo of up to 100 stalks per clump
+- spaced out at about 7 meters per clump
+- grows to maturity over five years (and is then harvested at 20%)
+- grows on terrain that is currently generated using perlin noise
 
-	if volume is delivering spatial query support
-	then the question is more how to get a handle on volume
-	or how to talk to volume, as in how to pass a query to it
-	sys can return results in my new approach
-	so one could await a sys.resolve({query})
-
-	or i could let you get a handle on something in some other way
-	i could have a method that lets you get a handler out of sys
-	this does destroy actor isolation 
-
-
-- there's an idea of everything routing all inputs and outputs clearly
-	right now things just call other things effectively; posting messages
-	it might be nice to send all outs to a single function or functions
-	and then things could have many outs
-	rather than burying their outs inside their code
-	and then i could lego things together a bit easier
-
-	- i need to support getting terrain elevation
-
-	- i need a bamboo shader renderer
-
-	- more randomness on bamboo
-
-
-- fix up time and tick stuff -> i turned it back on in sys
-- must switch all to use new sys and that means testing everything with it
+- runs in the browser
+- uses orbital-sys module to manage agents
+- uses orbital-volume to render a display
 
