@@ -8,73 +8,6 @@ let counter = 0
 
 ////////////////////////////////////////////////////////////////////////////
 
-const posX          = new Float32Array(MAX_STALK_COUNT);
-const posZ          = new Float32Array(MAX_STALK_COUNT);
-const targetHeights = new Float32Array(MAX_STALK_COUNT);
-const currentHeights= new Float32Array(MAX_STALK_COUNT);
-const radii         = new Float32Array(MAX_STALK_COUNT);
-const tmp			= new THREE.Object3D();
-
-// test stalk generator
-
-function test_generate_stalks(bamboo,x,z) {
-
-	// Initialize each stalk at height ≈ 0
-	for (let i = 0; i < MAX_STALK_COUNT; i++) {
-		// scatter in XZ
-		const a = Math.random() * Math.PI * 2;
-		const d = Math.random() * 6;
-		posX[i] = Math.cos(a) * d + x
-		posZ[i] = Math.sin(a) * d + z
-
-		// pick a random final height & radius
-		targetHeights[i]  = 2 + Math.random() * 6;      // [2–8]
-		radii[i]          = 0.05 + Math.random() * 0.1; // [0.05–0.15]
-		currentHeights[i] = 0;
-
-		// build the first instance matrix (nearly zero height)
-		tmp.position.set(posX[i], 0, posZ[i]);
-		tmp.scale.set(radii[i], 0.0001, radii[i]);  // tiny Y so it's not degenerate
-		tmp.updateMatrix();
-		bamboo.setMatrixAt(i, tmp.matrix);
-	}
-	bamboo.instanceMatrix.needsUpdate = true;
-}
-
-function test_update() {
-
-	// Growth timing
-	const growthDuration = 4.0; // seconds to full height
-	const clock = new THREE.Clock();
-
-	const dt = clock.getDelta();
-	let needUpdate = false;
-
-	for (let i = 0; i < N; i++) {
-		if (currentHeights[i] < targetHeights[i]) {
-			// grow this stalk
-			currentHeights[i] = Math.min(
-				targetHeights[i],
-				currentHeights[i] + (targetHeights[i] / growthDuration) * dt
-			);
-
-			// rebuild its matrix
-			const h = currentHeights[i];
-			tmp.position.set(posX[i], h * 0.5, posZ[i]);  // lift so base is at y=0
-			tmp.scale.set(radii[i], h, radii[i]);
-			tmp.updateMatrix();
-			bamboo.setMatrixAt(i, tmp.matrix);
-
-			needUpdate = true;
-		}
-	}
-
-	if (needUpdate) {
-		bamboo.instanceMatrix.needsUpdate = true;
-	}
-
-}
-
 //
 // the data flow architecture of orbital is intended to separate data from views
 // this is a view generator that paints bamboo clumps
@@ -85,45 +18,34 @@ function test_update() {
 function bamboo_clump_renderer(sys,surface,entity,delta) {
 
 	// initialize?
-
 	let bamboo = entity.volume.node
-
 	if(!bamboo) {
-		const scene = surface.scene
-		const cylGeo  = new THREE.CylinderGeometry(1, 1, 1, 8, 1, false)
-		const cylMat  = new THREE.MeshBasicMaterial({ color: 0x228B22 })
-		bamboo  = new THREE.InstancedMesh(cylGeo, cylMat, MAX_STALK_COUNT)
-		entity.volume.node = bamboo
-		scene.add(bamboo)
-
-		// test
-		const x = entity.volume.pose.position.x
-		const z = entity.volume.pose.position.z
-		test_generate_stalks(bamboo,x,z)
+		const c  = new THREE.CylinderGeometry(1, 1, 1, 8, 1, false)
+		const m  = new THREE.MeshBasicMaterial({ color: 0x228B22 })
+		bamboo = entity.volume.node = new THREE.InstancedMesh(c, m, MAX_STALK_COUNT)
+		surface.scene.add(bamboo)
 	}
 
 	// update
-	let needUpdate = false
+
+	const matrix = new THREE.Matrix4()
 	for(let i = 0; i < entity._stalks.length; i++) {
 		const stalk = entity._stalks[i]
-		const x = stalk.volume.pose.position.x
-		const y = stalk.volume.pose.position.y
-		const z = stalk.volume.pose.position.z
 		const h = stalk.plant.height
 		const r = stalk.plant.radius
-		tmp.position.set(x,y+h*0.5,z)
-		tmp.scale.set(r,h,r)
-		tmp.updateMatrix()
-		bamboo.setMatrixAt(i, tmp.matrix)
-		needUpdate = true
+		const x = stalk.volume.pose.position.x
+		const y = stalk.volume.pose.position.y + h*0.5
+		const z = stalk.volume.pose.position.z
+		matrix.set(
+			r, 0, 0, x,
+			0, h, 0, y,
+			0, 0, r, z,
+			0, 0, 0, 1
+		);
+		bamboo.setMatrixAt(i,matrix)
 	}
-
-	if (needUpdate) {
-		bamboo.instanceMatrix.needsUpdate = true
-	}
-
 	entity.volume.node.count = entity._stalks.length
-
+	bamboo.instanceMatrix.needsUpdate = true
 }
 
 
