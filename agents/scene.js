@@ -8,6 +8,8 @@ export const aaa_scene = {
 		geometry: 'scene',
 		near: 1,
 		far: size*4,
+		alpha: 1,
+		background: 0xffffff
 	}
 }
 
@@ -32,7 +34,7 @@ const pointLight = {
 		geometry: 'light',
 		light: 'pointLight',
 		color: 0xffffff,
-		intensity: 0.5,
+		intensity: 1,
 		pose: {
 			position: { x: size/2 , y: 100, z: size/2 },
 			rotation: { x: 0, y: 0, z: 0 },
@@ -63,7 +65,7 @@ export const ambientLight = {
 		geometry: 'light',
 		light: 'ambientLight',
 		color: 0xffffff,
-		intensity: 0.4,
+		intensity: 0.5,
 		pose: {
 			position: { x: size/2, y: 0, z: size/2 },
 		},

@@ -75,7 +75,7 @@ class PerlinNoise {
 // TerrainComponent handles terrain-specific functionality
 class TerrainComponent {
 
-	constructor(terrainSize = 100, terrainResolution = 100, terrainHeightScale = 5) {
+	constructor(terrainSize = 100, terrainResolution = 100, terrainHeightScale = 10) {
 		this.width = this.depth = this.TERRAIN_SIZE = terrainSize;
 		this.TERRAIN_RESOLUTION = terrainResolution;
 		this.TERRAIN_HEIGHT_SCALE = terrainHeightScale;

@@ -91,7 +91,7 @@ const stalkPrototype = {
 		harvestTime: 5.0 * SECONDS_PER_YEAR,
 		maxHeight: 30.0,
 		maxClumpRadius: 5.0,
-		maxStalkRadius: 0.1,
+		maxStalkRadius: 0.2,
 		maxStalkCount: MAX_STALK_COUNT,
 		minStalkSeparation: 0.1,
 		minClumpSeparation: 10.0,
