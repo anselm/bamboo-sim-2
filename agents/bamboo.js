@@ -94,7 +94,7 @@ const stalkPrototype = {
 		maxStalkRadius: 0.2,
 		maxStalkCount: MAX_STALK_COUNT,
 		minStalkSeparation: 0.1,
-		minClumpSeparation: 10.0,
+		minClumpSeparation: 20.0,
 		co2PerStalk: 0.2, // metric tonnes
 		laborPerStalk: 1000, // in a currency of seconds of work value
 		revenuePerStalk: 2000, // in a currency of seconds of work value
@@ -287,7 +287,9 @@ function logStats(seconds,entities) {
 	records.push(datum)
 
     // draw it
-    drawOverlayChart(document.getElementById('stats'), records);
+	const node = document.getElementById('stats')
+	if(!node) return
+    drawOverlayChart(node, records);
 
 }
 
@@ -411,6 +413,7 @@ for (let d=0; d<=365*20; d+=30) {
 
   function generateLegend(containerId="legend") {
     const container = document.getElementById(containerId);
+	if(!container) return
     container.innerHTML = ''; // clear any existing
     const metrics = Object.keys(scaleMaxima);
     metrics.forEach((key, i) => {
