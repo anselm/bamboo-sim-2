@@ -5,6 +5,7 @@ export const manifest = {
 	load: [
 
 		'./config.js',
+
 		'./scene.js',
 
 		'./terrain-farm.js',

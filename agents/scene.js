@@ -27,8 +27,7 @@ export const aab_camera001 = {
 }
 
 
-// unused
-const pointLight = {
+export const pointLight = {
 	uuid: '/light/point',
 	volume: {
 		geometry: 'light',
@@ -41,22 +40,6 @@ const pointLight = {
 		},
 	},
 }
-
-/*
-{
-	volume: {
-		geometry:'sphere',
-		pose: { scale:{x:10,y:10,z:10}},
-		material: {
-			kind: 'basic',
-			color: 0xffff00,
-			opacity: 0.5,
-			transparent: true,
-			side: THREE.DoubleSide
-		}
-	},
-}
-*/
 
 // a general ambient light
 export const ambientLight = {
@@ -72,20 +55,3 @@ export const ambientLight = {
 	},
 }
 
-/*
-
-{
-	volume: {
-		geometry:'sphere',
-		pose: { scale:{x:10,y:10,z:10} },
-		material: {
-			kind: 'basic',
-			color: 0xffff00,
-			opacity: 0.5,
-			transparent: true,
-			side: THREE.DoubleSide
-		}
-	}
-}
-
-*/
