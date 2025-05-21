@@ -153,7 +153,7 @@ function growStalks(sys,seconds,clump) {
 		let radius = config.maxStalkRadius
 
 		// periodically harvest full grown stalks; should be rate limited
-		if(age >= config.harvestTime && Math.random()<0.1) {
+		if(age >= config.harvestTime && Math.random()<0.01) {
 			//entity.clump.stalks.splice(i, 1) -> would have to publish to sys()
 			stalk.plant.createdTime = seconds
 			height = stalk.plant.height = 0
